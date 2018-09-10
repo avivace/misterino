@@ -3,4 +3,5 @@
 bin/
 lib/
 share/
-pyenv.cfg
+pyvenv.cfg
+lib64
