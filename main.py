@@ -2,20 +2,10 @@ import json
 from jsonschema import validate
 
 
-with open('config.json', 'r') as config_file:
-	config = json.load(config_file)
+with open('configSchema.json', 'r') as configSchemaFile:
+	configSchema = json.load(configSchemaFile)
 
-jsonConfig = json.dumps(config)
+with open('config.json', 'r') as configFile:
+	config = json.load(configFile)
 
-schema = {
-		"type" : "object",
-		"properties" : {
-			"botToken" : { "type": "string" },
-			"TwitchAppClientID" : { "type": "string" },
-			"TwitchAppClientSecret" : { "type": "string" },
-		},
-		 "required": ["botToken", "TwitchAppClientID", "TwitchAppClientSecret"],
-}
-
-
-validate(jsonConfig,schema)
+validate(config, configSchema)
