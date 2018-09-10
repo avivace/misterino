@@ -12,7 +12,7 @@ apt install python3 python3-pip python3-venv
 # Get things ready
 git clone git@github.com:avivace/mister-notifier.git
 cd mister-notifier
-python3 -v venv .
+python3 -m venv .
 source bin/activate
 pip3 install -r requirements.txt
 
