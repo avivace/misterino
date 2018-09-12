@@ -1,8 +1,9 @@
 # Configuration file
 config.json
 
-#pip
+#pip and python
 pip-selfcheck.json
+__pycache__
 
 # Python3 Virtual Envirtonment schifezze
 
