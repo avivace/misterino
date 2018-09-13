@@ -31,7 +31,7 @@ authHeaders = {
 
 ### Get User ID of a given login name
 payload = {
-	'login' : 'darkpuma'
+	'login' : ''
 }
 
 r = requests.get(twitchNewAPIEndpoint + '/users',
@@ -57,7 +57,43 @@ response = r.json()
 
 totalSubs = response["total"]
 
-subscriptions = []
+subscriptionsIDs = []
 for subscribedUser in response["data"]:
-	subscriptions.push(subscribedUser["to_id"])
+	subscriptionsIDs.append(subscribedUser["to_id"])
 
+### Get more details on the list of followed users
+
+# We can't create dictionaries with duplicate key names, and the /users 
+# endpoint wants ?login=user1&?login=user2&... for lists. 
+# So, enjoy this abomination or waste hundreds of API calls and get ratelimited
+
+def listToQueryParams(array, param):
+	queryString = ''
+
+	for element in array:
+		if element == array[0]:
+			queryString += '?'
+		else:
+			queryString += '&'
+		queryString += param + '=' + element
+
+	return queryString
+
+queryString = listToQueryParams(subscriptions, 'id')
+
+print(queryString)
+
+# TODO: this endpoint accepts max 100 IDs or Logins, split and do more requests
+r = requests.get(twitchNewAPIEndpoint + '/users' + queryString,
+				 headers=authHeaders)
+
+response = r.json()
+
+print(response)
+
+# Build an [{display_name, id}] array of subscribed streamers
+
+subscriptions = []
+for element in response['data']:
+	subscriptions.append({'display_name': element['display_name'],
+						  'id': element['id']})
