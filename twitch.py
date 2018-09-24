@@ -14,8 +14,8 @@ twitchNewAPIEndpoint = 'https://api.twitch.tv/helix'
 #  OAuth Client Credentials Flow (server-server)
 
 payload = {
-	'client_id':config["TwitchAppClientID"],
-	'client_secret':config["TwitchAppClientSecret"],
+	'client_id': config["TwitchAppClientID"],
+	'client_secret': config["TwitchAppClientSecret"],
 	'grant_type': 'client_credentials'
 }
 
@@ -79,7 +79,7 @@ def listToQueryParams(array, param):
 
 	return queryString
 
-queryString = listToQueryParams(subscriptions, 'id')
+queryString = listToQueryParams(subscriptionsIDs, 'id')
 
 print(queryString)
 
