@@ -34,6 +34,8 @@ class misterBot():
 		self.dispatcher.add_handler(
 			CommandHandler('show', self.show))
 		self.dispatcher.add_handler(
+			CommandHandler('unsub', self.unsub, pass_args=True))
+		self.dispatcher.add_handler(
 			CommandHandler('enable', self.enable, pass_args=True))
 		self.dispatcher.add_handler(
 			CommandHandler('disable', self.disable, pass_args=True))
@@ -41,6 +43,37 @@ class misterBot():
 	### Commands methods
 	def life(self, bot, update):
 		bot.send_message(chat_id=update.message.chat_id, text='42')
+
+	## Unsub method
+	#  Delete a subscription for current user given a username
+	def unsub(self, bot, update, args):
+		streamer = args[0]
+		# Open db connection and create db cursor	
+		dbConn = sqlite3.connect('./db.sqlite')
+		c = dbConn.cursor()
+		queryParams = (update.message.chat_id,streamer)
+		# Check if requested subscription exits in db
+		sql = 'SELECT COUNT(*) FROM SUBSCRIPTIONS WHERE ChatID=? AND Sub=?'
+		c.execute(sql,queryParams)
+		found = c.fetchone()[0]
+		# If it exits...
+		if found:
+			# ... Delete it and...
+			sql = 'DELETE FROM SUBSCRIPTIONS WHERE ChatID=? AND Sub=?'
+			c.execute(sql, queryParams)
+			dbConn.commit()
+			#...Notify the user
+			bot.send_message(chat_id=update.message.chat_id,
+							 text='Yeeey! *{}* subscription successfully\
+							 	   deleted!'.format(streamer),
+							 parse_mode=ParseMode.MARKDOWN)
+		else:
+			# Otherwise warn the user that subscription doesn't exist
+			bot.send_message(chat_id=update.message.chat_id,
+							 text='Sorry, it seems you\'re not subscribed to\
+								   *{}*'.format(streamer),
+							 parse_mode=ParseMode.MARKDOWN)
+		dbConn.close()
 
 	## Show method
 	#  Retrieve a list of all subscriptions for current user
