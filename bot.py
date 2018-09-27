@@ -47,33 +47,47 @@ class misterBot():
 	## Unsub method
 	#  Delete a subscription for current user given a username
 	def unsub(self, bot, update, args):
-		streamer = args[0]
-		# Open db connection and create db cursor	
-		dbConn = sqlite3.connect('./db.sqlite')
-		c = dbConn.cursor()
-		queryParams = (update.message.chat_id,streamer)
-		# Check if requested subscription exits in db
-		sql = 'SELECT COUNT(*) FROM SUBSCRIPTIONS WHERE ChatID=? AND Sub=?'
-		c.execute(sql,queryParams)
-		found = c.fetchone()[0]
-		# If it exits...
-		if found:
-			# ... Delete it and...
-			sql = 'DELETE FROM SUBSCRIPTIONS WHERE ChatID=? AND Sub=?'
-			c.execute(sql, queryParams)
-			dbConn.commit()
-			#...Notify the user
+		# Check if we received the correct, allowed, number of subscriptions
+		# to unsubscribe from (1 atm)
+		if len(args) > 1:
+			message = 'Sorry, you can unsubscribe only from one streamer at a time'
+			bot.send_message(chat_id=update.message.chat_id, text=message)
+		elif len(args) < 1:
+			message = 'Sorry, you must provide one valid twitch username '\
+ 					+ 'you want to unsubscribe from.\n\n'\
+ 					+ 'Please try again with something like\n'\
+ 					+ '_/unsub streamerUsername_'
 			bot.send_message(chat_id=update.message.chat_id,
-							 text='Yeeey! *{}* subscription successfully\
-							 	   deleted!'.format(streamer),
+							 text=message,
 							 parse_mode=ParseMode.MARKDOWN)
 		else:
-			# Otherwise warn the user that subscription doesn't exist
-			bot.send_message(chat_id=update.message.chat_id,
-							 text='Sorry, it seems you\'re not subscribed to\
-								   *{}*'.format(streamer),
-							 parse_mode=ParseMode.MARKDOWN)
-		dbConn.close()
+			streamer = args[0]
+			# Open db connection and create db cursor	
+			dbConn = sqlite3.connect('./db.sqlite')
+			c = dbConn.cursor()
+			queryParams = (update.message.chat_id,streamer)
+			# Check if requested subscription exits in db
+			sql = 'SELECT COUNT(*) FROM SUBSCRIPTIONS WHERE ChatID=? AND Sub=?'
+			c.execute(sql,queryParams)
+			found = c.fetchone()[0]
+			# If it exits...
+			if found:
+				# ... Delete it and...
+				sql = 'DELETE FROM SUBSCRIPTIONS WHERE ChatID=? AND Sub=?'
+				c.execute(sql, queryParams)
+				dbConn.commit()
+				#...Notify the user
+				bot.send_message(chat_id=update.message.chat_id,
+								 text='Yeeey! *{}* subscription successfully '\
+								 	.format(streamer) + 'deleted!',
+								 parse_mode=ParseMode.MARKDOWN)
+			else:
+				# Otherwise warn the user that subscription doesn't exist
+				bot.send_message(chat_id=update.message.chat_id,
+								 text='Sorry, it seems you\'re not subscribed '\
+								 	+ 'to *{}*'.format(streamer),
+								 parse_mode=ParseMode.MARKDOWN)
+			dbConn.close()
 
 	## Show method
 	#  Retrieve a list of all subscriptions for current user
