@@ -38,14 +38,14 @@ class misterBot():
 		self.dispatcher.add_handler(
 			CommandHandler('disable', self.disable, pass_args=True))
 
-	## Commands methods
+	### Commands methods
 	def life(self, bot, update):
 		bot.send_message(chat_id=update.message.chat_id, text='42')
 
 	## Show method
 	#  Retrieve a list of all subscriptions for current user
 	def show(self, bot, update):
-		# Open db connection and crate db cursor
+		# Open db connection and create db cursor
 		dbConn = sqlite3.connect('./db.sqlite')
 		c = dbConn.cursor()
 
@@ -83,31 +83,42 @@ class misterBot():
 	## Enable method
 	#  Activate a previously disabled subscription
 	def enable(self, bot, update, args):
+		# Check if we received the correct, allowed, number of subscriptions
+		# to enable (1 atm)
 		if len(args) > 1:
 			message = 'Sorry, you can enable only one streamer at a time'
 			bot.send_message(chat_id=update.message.chat_id, text=message)
+		elif len(args) < 1:
+			message = 'Sorry, you must provide one valid twitch username '\
+ 					+ 'to enable.\n\n'\
+ 					+ 'Please try again with something like\n'\
+ 					+ '_/enable streamerUsername_'
+			bot.send_message(chat_id=update.message.chat_id,
+							 text=message,
+							 parse_mode=ParseMode.MARKDOWN)
 		else:
 			streamer = args[0]
-
+			# Open db connection and create db cursor	
 			dbConn = sqlite3.connect('./db.sqlite')
 			c = dbConn.cursor()
-
-			sql = 'SELECT Active FROM SUBSCRIPTIONS WHERE ChatID = ? AND Sub = ?'
+			# Retrieve status for desired subscription (Active/Disabled)
+			sql='SELECT Active FROM SUBSCRIPTIONS WHERE ChatID=? AND Sub=?'
 			queryParams = (update.message.chat_id,streamer)
 			c.execute(sql,queryParams)
-
 			status = c.fetchone()[0]
-
+			
 			if status == 1:
+				# If it's already activated simply notify the user
 				dbConn.close()
 				message = 'No worries! *{}* subscription is already *Active*'\
-				.format(streamer)
+					.format(streamer)
 				bot.send_message(
 					chat_id=update.message.chat_id, 
 					text=message,
 					parse_mode=ParseMode.MARKDOWN)
 			else:
-				sql = 'UPDATE SUBSCRIPTIONS SET Active = ? WHERE ChatID = ? AND Sub = ?'
+				# Otherwise set its status to 1 (Active) and notify th user
+				sql='UPDATE SUBSCRIPTIONS SET Active=? WHERE ChatID=? AND Sub=?'
 				queryParams = (1,update.message.chat_id,streamer)
 				c.execute(sql,queryParams)
 				dbConn.commit()
@@ -123,31 +134,42 @@ class misterBot():
 	## Disable method
 	#  Disable a subscription
 	def disable(self, bot, update, args):
+		# Check if we received the correct, allowed, number of subscriptions
+		# to disable (1 atm)
 		if len(args) > 1:
 			message = 'Sorry, you can disable only one streamer at a time'
 			bot.send_message(chat_id=update.message.chat_id, text=message)
+		elif len(args) < 1:
+			message = 'Sorry, you must provide one valid twitch username '\
+					+ 'to disable.\n\n'\
+					+ 'Please try again with something like\n'\
+					+ '_/disable streamerUsername_'
+			bot.send_message(chat_id=update.message.chat_id,
+							 text=message,
+							 parse_mode=ParseMode.MARKDOWN)
 		else:
 			streamer = args[0]
-
+			# Open db connection and create db cursor	
 			dbConn = sqlite3.connect('./db.sqlite')
 			c = dbConn.cursor()
-
-			sql = 'SELECT Active FROM SUBSCRIPTIONS WHERE ChatID = ? AND Sub = ?'
+			# Retrieve status for desired subscription (Active/Disabled)
+			sql = 'SELECT Active FROM SUBSCRIPTIONS WHERE ChatID=? AND Sub=?'
 			queryParams = (update.message.chat_id,streamer)
 			c.execute(sql,queryParams)
-
 			status = c.fetchone()[0]
 
 			if status == 0:
+				# If it's already disabled simply notify the user
 				dbConn.close()
-				message = 'No problem, *{}* subscription was already _Disabled_'\
-				.format(streamer)
+				message = 'No problem, {} subscription was '.format(streamer)\
+						+ 'already _Disabled_'
 				bot.send_message(
 					chat_id=update.message.chat_id,
 					text=message,
 					parse_mode=ParseMode.MARKDOWN)
 			else:
-				sql = 'UPDATE SUBSCRIPTIONS SET Active = ? WHERE ChatID = ? AND Sub = ?'
+				# Otherwise set its status to 0 (disabled) and notify th user
+				sql='UPDATE SUBSCRIPTIONS SET Active=? WHERE ChatID=? AND Sub=?'
 				queryParams = (0,update.message.chat_id,streamer)
 				c.execute(sql,queryParams)
 				dbConn.commit()
