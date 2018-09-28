@@ -34,6 +34,8 @@ class misterBot():
 		self.dispatcher.add_handler(
 			CommandHandler('show', self.show))
 		self.dispatcher.add_handler(
+			CommandHandler('sub', self.sub, pass_args=True))
+		self.dispatcher.add_handler(
 			CommandHandler('unsub', self.unsub, pass_args=True))
 		self.dispatcher.add_handler(
 			CommandHandler('enable', self.enable, pass_args=True))
@@ -44,8 +46,55 @@ class misterBot():
 	def life(self, bot, update):
 		bot.send_message(chat_id=update.message.chat_id, text='42')
 
+	## Sub method
+	#  Add a subscription for current user given a twitch username
+	def sub(self, bot, update, args):
+		# Check if we received the correct, allowed, number of subscriptions
+		# to subscribe to (1 atm)
+		if len(args) > 1:
+			message = 'Sorry, you can subscribe only to one streamer at a time'
+			bot.send_message(chat_id=update.message.chat_id, text=message)
+		elif len(args) < 1:
+			message = 'Sorry, you must provide one valid twitch username '\
+ 					+ 'you want to subscribe to.\n\n'\
+ 					+ 'Please try again with something like\n'\
+ 					+ '_/sub streamerUsername_'
+			bot.send_message(chat_id=update.message.chat_id,
+							 text=message,
+							 parse_mode=ParseMode.MARKDOWN)
+		else:
+			streamer = args[0]
+			# Open db connection and create db cursor	
+			dbConn = sqlite3.connect('./db.sqlite')
+			c = dbConn.cursor()
+			queryParams = (update.message.chat_id,streamer)
+			# Check if requested subscription already exits in db
+			sql = 'SELECT COUNT(*) FROM SUBSCRIPTIONS WHERE ChatID=? AND Sub=?'
+			c.execute(sql,queryParams)
+			found = c.fetchone()[0]
+			# If it doesn't exit yet...
+			if not found:
+				# ... Add it to db and...
+				sql = '''INSERT INTO SUBSCRIPTIONS (ChatID,Sub,Active)
+						 VALUES (?,?,?)'''
+				queryParams = (update.message.chat_id,streamer,1)
+				c.execute(sql, queryParams)
+				dbConn.commit()
+				#... Notify the user
+				bot.send_message(chat_id=update.message.chat_id,
+								 text='Yeeey! you\'ve successfully subscribed to *{}*!'\
+								 	.format(streamer),
+								 parse_mode=ParseMode.MARKDOWN)
+			else:
+				# Otherwise warn the user that subscription is already existent
+				bot.send_message(chat_id=update.message.chat_id,
+								 text='Don\'t worry! You are already subscribed to '\
+								 	+ '*{}*'.format(streamer),
+								 parse_mode=ParseMode.MARKDOWN)
+			dbConn.close()
+
 	## Unsub method
-	#  Delete a subscription for current user given a username
+	#  Delete a subscription for current user given a twitch username
 	def unsub(self, bot, update, args):
 		# Check if we received the correct, allowed, number of subscriptions
 		# to unsubscribe from (1 atm)
@@ -66,7 +115,7 @@ class misterBot():
 			dbConn = sqlite3.connect('./db.sqlite')
 			c = dbConn.cursor()
 			queryParams = (update.message.chat_id,streamer)
-			# Check if requested subscription exits in db
+			# Check if requested subscription already exits in db
 			sql = 'SELECT COUNT(*) FROM SUBSCRIPTIONS WHERE ChatID=? AND Sub=?'
 			c.execute(sql,queryParams)
 			found = c.fetchone()[0]
