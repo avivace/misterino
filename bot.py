@@ -213,31 +213,46 @@ class misterBot():
 							 parse_mode=ParseMode.MARKDOWN)
 		else:
 			streamer = args[0]
-			# Retrieve status for desired subscription (Active/Disabled)
-			sql='SELECT Active FROM SUBSCRIPTIONS WHERE ChatID=? AND Sub=?'
-			queryParams = (update.message.chat_id,streamer)
+			# Execute a count of wantend rows
+			sql = 'SELECT COUNT(*) FROM SUBSCRIPTIONS WHERE ChatID = ? AND Sub = ?'
+			queryParams = (str(update.message.chat_id),streamer)
 			self.c.execute(sql,queryParams)
-			status = self.c.fetchone()[0]
-			
-			if status == 1:
-				# If it's already activated simply notify the user
-				message = 'No worries! *{}* subscription is already *Active*'\
-					.format(streamer)
-				bot.send_message(
-					chat_id=update.message.chat_id, 
-					text=message,
-					parse_mode=ParseMode.MARKDOWN)
-			else:
-				# Otherwise set its status to 1 (Active)... 
-				sql='UPDATE SUBSCRIPTIONS SET Active=? WHERE ChatID=? AND Sub=?'
-				queryParams = (1,update.message.chat_id,streamer)
+			found = self.c.fetchone()[0]
+			# If the steamer we want to enable exists for current user...
+			if found:
+				# ... Retrieve status for desired subscription (Active/Disabled)
+				sql='SELECT Active FROM SUBSCRIPTIONS WHERE ChatID=? AND Sub=?'
+				queryParams = (update.message.chat_id,streamer)
 				self.c.execute(sql,queryParams)
-				self.dbConn.commit()
-				# ... and notify th user
-				message = "Yeeeey! *{}* subscription has been *Activated*"\
+				status = self.c.fetchone()[0]
+				
+				if status == 1:
+					# If it's already activated simply notify the user
+					message = 'No worries! *{}* subscription is already *Active*'\
+						.format(streamer)
+					bot.send_message(
+						chat_id=update.message.chat_id, 
+						text=message,
+						parse_mode=ParseMode.MARKDOWN)
+				else:
+					# Otherwise set its status to 1 (Active)... 
+					sql='UPDATE SUBSCRIPTIONS SET Active=? WHERE ChatID=? AND Sub=?'
+					queryParams = (1,update.message.chat_id,streamer)
+					self.c.execute(sql,queryParams)
+					self.dbConn.commit()
+					# ... and notify th user
+					message = "Yeeeey! *{}* subscription has been *Activated*"\
+					.format(streamer)
+					bot.send_message(
+						chat_id=update.message.chat_id, 
+						text=message,
+						parse_mode=ParseMode.MARKDOWN)
+			else:
+				# ... Otherwise warn the user
+				message = 'Sorry, it\' seems like you\'re not subscribed to *{}*'\
 				.format(streamer)
 				bot.send_message(
-					chat_id=update.message.chat_id, 
+					chat_id=update.message.chat_id,
 					text=message,
 					parse_mode=ParseMode.MARKDOWN)
 
@@ -259,28 +274,43 @@ class misterBot():
 							 parse_mode=ParseMode.MARKDOWN)
 		else:
 			streamer = args[0]
-			# Retrieve status for desired subscription (Active/Disabled)
-			sql = 'SELECT Active FROM SUBSCRIPTIONS WHERE ChatID=? AND Sub=?'
-			queryParams = (update.message.chat_id,streamer)
+			# Execute a count of wantend rows
+			sql = 'SELECT COUNT(*) FROM SUBSCRIPTIONS WHERE ChatID = ? AND Sub = ?'
+			queryParams = (str(update.message.chat_id),streamer)
 			self.c.execute(sql,queryParams)
-			status = self.c.fetchone()[0]
-
-			if status == 0:
-				# If it's already disabled simply notify the user
-				message = 'No problem, {} subscription was '.format(streamer)\
-						+ 'already _Disabled_'
-				bot.send_message(
-					chat_id=update.message.chat_id,
-					text=message,
-					parse_mode=ParseMode.MARKDOWN)
-			else:
-				# Otherwise set its status to 0 (disabled)...
-				sql='UPDATE SUBSCRIPTIONS SET Active=? WHERE ChatID=? AND Sub=?'
-				queryParams = (0,update.message.chat_id,streamer)
+			found = self.c.fetchone()[0]
+			# If the steamer we want to disable exists for current user...
+			if found:
+				# ... Retrieve status for desired subscription (Active/Disabled)
+				sql = 'SELECT Active FROM SUBSCRIPTIONS WHERE ChatID=? AND Sub=?'
+				queryParams = (update.message.chat_id,streamer)
 				self.c.execute(sql,queryParams)
-				self.dbConn.commit()
-				# ... and notify th user
-				message = "Ok! *{}* subscription has been _Disabled_"\
+				status = self.c.fetchone()[0]
+
+				if status == 0:
+					# If it's already disabled simply notify the user
+					message = 'No problem, {} subscription was '.format(streamer)\
+							+ 'already _Disabled_'
+					bot.send_message(
+						chat_id=update.message.chat_id,
+						text=message,
+						parse_mode=ParseMode.MARKDOWN)
+				else:
+					# Otherwise set its status to 0 (disabled)...
+					sql='UPDATE SUBSCRIPTIONS SET Active=? WHERE ChatID=? AND Sub=?'
+					queryParams = (0,update.message.chat_id,streamer)
+					self.c.execute(sql,queryParams)
+					self.dbConn.commit()
+					# ... and notify th user
+					message = "Ok! *{}* subscription has been _Disabled_"\
+					.format(streamer)
+					bot.send_message(
+						chat_id=update.message.chat_id,
+						text=message,
+						parse_mode=ParseMode.MARKDOWN)
+			else:
+				# ... Otherwise warn the user
+				message = 'Sorry, it\' seems like you\'re not subscribed to *{}*'\
 				.format(streamer)
 				bot.send_message(
 					chat_id=update.message.chat_id,
