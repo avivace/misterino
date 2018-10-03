@@ -1,14 +1,36 @@
-from telegram.ext import Dispatcher, CommandHandler
+from telegram.ext import Dispatcher, CommandHandler, Updater
 from telegram import Bot, Update, ParseMode
 from queue import Queue
 from threading import Thread
 import sqlite3
 
 class misterBot():
+
 	def __init__(self,
-				 botToken,
+				 config,
 				 log,
 				 webhookURL=None):
+		botToken = config["botToken"]
+		if config["mode"] == "polling":
+			self.pollingInit(botToken,
+							 log)
+		elif config["mode"] == "webhook":
+			self.webhookInit(botToken,
+							 log)
+	
+	def pollingInit(self,
+					botToken,
+					log):
+		self.updater = Updater(token=botToken)
+		self.dispatcher = self.updater.dispatcher
+		self.registerHandlers()
+		self.updater.start_polling()
+
+
+	def webhookInit(self,
+				 	botToken,
+				 	log,
+				 	webhookURL=None):
 		
 		self.bot = Bot(botToken)
 		self.log = log
