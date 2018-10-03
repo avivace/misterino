@@ -9,8 +9,13 @@ class misterBot():
 	def __init__(self,
 				 config,
 				 log,
+				 dbConn,
 				 webhookURL=None):
 		botToken = config["botToken"]
+		
+		self.dbConn = dbConn
+		self.c = self.dbConn.cursor()
+
 		if config["mode"] == "polling":
 			self.pollingInit(botToken,
 							 log)
@@ -28,9 +33,9 @@ class misterBot():
 
 
 	def webhookInit(self,
-				 	botToken,
-				 	log,
-				 	webhookURL=None):
+					botToken,
+					log,
+					webhookURL=None):
 		
 		self.bot = Bot(botToken)
 		self.log = log
@@ -66,6 +71,11 @@ class misterBot():
 
 	### Commands methods
 	def life(self, bot, update):
+		sql = '''INSERT INTO SUBSCRIPTIONS (ChatID,Sub,Active)
+						 VALUES (?,?,?)'''
+		queryParams = ('a','b','c')
+		self.c.execute(sql, queryParams)
+		self.dbConn.commit()
 		bot.send_message(chat_id=update.message.chat_id, text='42')
 
 	## Sub method
@@ -78,16 +88,16 @@ class misterBot():
 			bot.send_message(chat_id=update.message.chat_id, text=message)
 		elif len(args) < 1:
 			message = 'Sorry, you must provide one valid twitch username '\
- 					+ 'you want to subscribe to.\n\n'\
- 					+ 'Please try again with something like\n'\
- 					+ '_/sub streamerUsername_'
+					+ 'you want to subscribe to.\n\n'\
+					+ 'Please try again with something like\n'\
+					+ '_/sub streamerUsername_'
 			bot.send_message(chat_id=update.message.chat_id,
 							 text=message,
 							 parse_mode=ParseMode.MARKDOWN)
 		else:
 			streamer = args[0]
-			# Open db connection and create db cursor	
-			dbConn = sqlite3.connect('./db.sqlite')
+			# Open db connection and create db cursor   
+			#
 			c = dbConn.cursor()
 			queryParams = (update.message.chat_id,streamer)
 			# Check if requested subscription already exits in db
@@ -105,13 +115,13 @@ class misterBot():
 				#... Notify the user
 				bot.send_message(chat_id=update.message.chat_id,
 								 text='Yeeey! you\'ve successfully subscribed to *{}*!'\
-								 	.format(streamer),
+									.format(streamer),
 								 parse_mode=ParseMode.MARKDOWN)
 			else:
 				# Otherwise warn the user that subscription is already existent
 				bot.send_message(chat_id=update.message.chat_id,
 								 text='Don\'t worry! You are already subscribed to '\
-								 	+ '*{}*'.format(streamer),
+									+ '*{}*'.format(streamer),
 								 parse_mode=ParseMode.MARKDOWN)
 			dbConn.close()
 
@@ -125,15 +135,15 @@ class misterBot():
 			bot.send_message(chat_id=update.message.chat_id, text=message)
 		elif len(args) < 1:
 			message = 'Sorry, you must provide one valid twitch username '\
- 					+ 'you want to unsubscribe from.\n\n'\
- 					+ 'Please try again with something like\n'\
- 					+ '_/unsub streamerUsername_'
+					+ 'you want to unsubscribe from.\n\n'\
+					+ 'Please try again with something like\n'\
+					+ '_/unsub streamerUsername_'
 			bot.send_message(chat_id=update.message.chat_id,
 							 text=message,
 							 parse_mode=ParseMode.MARKDOWN)
 		else:
 			streamer = args[0]
-			# Open db connection and create db cursor	
+			# Open db connection and create db cursor   
 			dbConn = sqlite3.connect('./db.sqlite')
 			c = dbConn.cursor()
 			queryParams = (update.message.chat_id,streamer)
@@ -150,13 +160,13 @@ class misterBot():
 				#...Notify the user
 				bot.send_message(chat_id=update.message.chat_id,
 								 text='Yeeey! *{}* subscription successfully '\
-								 	.format(streamer) + 'deleted!',
+									.format(streamer) + 'deleted!',
 								 parse_mode=ParseMode.MARKDOWN)
 			else:
 				# Otherwise warn the user that subscription doesn't exist
 				bot.send_message(chat_id=update.message.chat_id,
 								 text='Sorry, it seems you\'re not subscribed '\
-								 	+ 'to *{}*'.format(streamer),
+									+ 'to *{}*'.format(streamer),
 								 parse_mode=ParseMode.MARKDOWN)
 			dbConn.close()
 
@@ -208,15 +218,15 @@ class misterBot():
 			bot.send_message(chat_id=update.message.chat_id, text=message)
 		elif len(args) < 1:
 			message = 'Sorry, you must provide one valid twitch username '\
- 					+ 'to enable.\n\n'\
- 					+ 'Please try again with something like\n'\
- 					+ '_/enable streamerUsername_'
+					+ 'to enable.\n\n'\
+					+ 'Please try again with something like\n'\
+					+ '_/enable streamerUsername_'
 			bot.send_message(chat_id=update.message.chat_id,
 							 text=message,
 							 parse_mode=ParseMode.MARKDOWN)
 		else:
 			streamer = args[0]
-			# Open db connection and create db cursor	
+			# Open db connection and create db cursor   
 			dbConn = sqlite3.connect('./db.sqlite')
 			c = dbConn.cursor()
 			# Retrieve status for desired subscription (Active/Disabled)
@@ -267,7 +277,7 @@ class misterBot():
 							 parse_mode=ParseMode.MARKDOWN)
 		else:
 			streamer = args[0]
-			# Open db connection and create db cursor	
+			# Open db connection and create db cursor   
 			dbConn = sqlite3.connect('./db.sqlite')
 			c = dbConn.cursor()
 			# Retrieve status for desired subscription (Active/Disabled)
