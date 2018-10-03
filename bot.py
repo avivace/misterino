@@ -96,22 +96,19 @@ class misterBot():
 							 parse_mode=ParseMode.MARKDOWN)
 		else:
 			streamer = args[0]
-			# Open db connection and create db cursor   
-			#
-			c = dbConn.cursor()
-			queryParams = (update.message.chat_id,streamer)
 			# Check if requested subscription already exits in db
+			queryParams = (update.message.chat_id,streamer)
 			sql = 'SELECT COUNT(*) FROM SUBSCRIPTIONS WHERE ChatID=? AND Sub=?'
-			c.execute(sql,queryParams)
-			found = c.fetchone()[0]
+			self.c.execute(sql,queryParams)
+			found = self.c.fetchone()[0]
 			# If it doesn't exit yet...
 			if not found:
 				# ... Add it to db and...
 				sql = '''INSERT INTO SUBSCRIPTIONS (ChatID,Sub,Active)
 						 VALUES (?,?,?)'''
 				queryParams = (update.message.chat_id,streamer,1)
-				c.execute(sql, queryParams)
-				dbConn.commit()
+				self.c.execute(sql, queryParams)
+				self.dbConn.commit()
 				#... Notify the user
 				bot.send_message(chat_id=update.message.chat_id,
 								 text='Yeeey! you\'ve successfully subscribed to *{}*!'\
@@ -123,7 +120,6 @@ class misterBot():
 								 text='Don\'t worry! You are already subscribed to '\
 									+ '*{}*'.format(streamer),
 								 parse_mode=ParseMode.MARKDOWN)
-			dbConn.close()
 
 	## Unsub method
 	#  Delete a subscription for current user given a twitch username
@@ -143,20 +139,17 @@ class misterBot():
 							 parse_mode=ParseMode.MARKDOWN)
 		else:
 			streamer = args[0]
-			# Open db connection and create db cursor   
-			dbConn = sqlite3.connect('./db.sqlite')
-			c = dbConn.cursor()
 			queryParams = (update.message.chat_id,streamer)
 			# Check if requested subscription already exits in db
 			sql = 'SELECT COUNT(*) FROM SUBSCRIPTIONS WHERE ChatID=? AND Sub=?'
-			c.execute(sql,queryParams)
-			found = c.fetchone()[0]
+			self.c.execute(sql,queryParams)
+			found = self.c.fetchone()[0]
 			# If it exits...
 			if found:
 				# ... Delete it and...
 				sql = 'DELETE FROM SUBSCRIPTIONS WHERE ChatID=? AND Sub=?'
-				c.execute(sql, queryParams)
-				dbConn.commit()
+				self.c.execute(sql, queryParams)
+				self.dbConn.commit()
 				#...Notify the user
 				bot.send_message(chat_id=update.message.chat_id,
 								 text='Yeeey! *{}* subscription successfully '\
@@ -168,27 +161,23 @@ class misterBot():
 								 text='Sorry, it seems you\'re not subscribed '\
 									+ 'to *{}*'.format(streamer),
 								 parse_mode=ParseMode.MARKDOWN)
-			dbConn.close()
 
 	## Show method
 	#  Retrieve a list of all subscriptions for current user
 	def show(self, bot, update):
-		# Open db connection and create db cursor
-		dbConn = sqlite3.connect('./db.sqlite')
-		c = dbConn.cursor()
 
 		# Execute a count of wantend rows
 		sql = 'SELECT COUNT(*) FROM SUBSCRIPTIONS WHERE ChatID = ?'
 		queryParams = (str(update.message.chat_id),)
-		c.execute(sql,queryParams)
+		self.c.execute(sql,queryParams)
 
 		# If we have at least one sub for current user...
-		if c.fetchone()[0] > 0:
+		if self.c.fetchone()[0] > 0:
 			# ...extract subscriptions from db and collect them
 			# in subs variable...
 			sql = 'SELECT * FROM SUBSCRIPTIONS WHERE ChatID = ?'
-			c.execute(sql, queryParams)
-			subs = c.fetchall()
+			self.c.execute(sql, queryParams)
+			subs = self.c.fetchall()
 
 			# Build up the message for the user with retrieved subscriptions
 			message = "Here's a list of all of your subscriptions:\n"
@@ -200,8 +189,6 @@ class misterBot():
 			# ...otherwise warn the user he has no subscriptions yet
 			message = "Sorry, it seems you have no subscriptions yet"
 
-		# Close db connection
-		dbConn.close()
 		# Respond to the user with "message"
 		bot.send_message(
 			chat_id=update.message.chat_id, 
@@ -226,18 +213,14 @@ class misterBot():
 							 parse_mode=ParseMode.MARKDOWN)
 		else:
 			streamer = args[0]
-			# Open db connection and create db cursor   
-			dbConn = sqlite3.connect('./db.sqlite')
-			c = dbConn.cursor()
 			# Retrieve status for desired subscription (Active/Disabled)
 			sql='SELECT Active FROM SUBSCRIPTIONS WHERE ChatID=? AND Sub=?'
 			queryParams = (update.message.chat_id,streamer)
-			c.execute(sql,queryParams)
-			status = c.fetchone()[0]
+			self.c.execute(sql,queryParams)
+			status = self.c.fetchone()[0]
 			
 			if status == 1:
 				# If it's already activated simply notify the user
-				dbConn.close()
 				message = 'No worries! *{}* subscription is already *Active*'\
 					.format(streamer)
 				bot.send_message(
@@ -245,13 +228,12 @@ class misterBot():
 					text=message,
 					parse_mode=ParseMode.MARKDOWN)
 			else:
-				# Otherwise set its status to 1 (Active) and notify th user
+				# Otherwise set its status to 1 (Active)... 
 				sql='UPDATE SUBSCRIPTIONS SET Active=? WHERE ChatID=? AND Sub=?'
 				queryParams = (1,update.message.chat_id,streamer)
-				c.execute(sql,queryParams)
-				dbConn.commit()
-				dbConn.close()
-
+				self.c.execute(sql,queryParams)
+				self.dbConn.commit()
+				# ... and notify th user
 				message = "Yeeeey! *{}* subscription has been *Activated*"\
 				.format(streamer)
 				bot.send_message(
@@ -277,18 +259,14 @@ class misterBot():
 							 parse_mode=ParseMode.MARKDOWN)
 		else:
 			streamer = args[0]
-			# Open db connection and create db cursor   
-			dbConn = sqlite3.connect('./db.sqlite')
-			c = dbConn.cursor()
 			# Retrieve status for desired subscription (Active/Disabled)
 			sql = 'SELECT Active FROM SUBSCRIPTIONS WHERE ChatID=? AND Sub=?'
 			queryParams = (update.message.chat_id,streamer)
-			c.execute(sql,queryParams)
-			status = c.fetchone()[0]
+			self.c.execute(sql,queryParams)
+			status = self.c.fetchone()[0]
 
 			if status == 0:
 				# If it's already disabled simply notify the user
-				dbConn.close()
 				message = 'No problem, {} subscription was '.format(streamer)\
 						+ 'already _Disabled_'
 				bot.send_message(
@@ -296,13 +274,12 @@ class misterBot():
 					text=message,
 					parse_mode=ParseMode.MARKDOWN)
 			else:
-				# Otherwise set its status to 0 (disabled) and notify th user
+				# Otherwise set its status to 0 (disabled)...
 				sql='UPDATE SUBSCRIPTIONS SET Active=? WHERE ChatID=? AND Sub=?'
 				queryParams = (0,update.message.chat_id,streamer)
-				c.execute(sql,queryParams)
-				dbConn.commit()
-				dbConn.close()
-
+				self.c.execute(sql,queryParams)
+				self.dbConn.commit()
+				# ... and notify th user
 				message = "Ok! *{}* subscription has been _Disabled_"\
 				.format(streamer)
 				bot.send_message(
