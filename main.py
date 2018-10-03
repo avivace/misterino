@@ -18,31 +18,33 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 config = loadConfig()
 
 # Instance Telegram Bot
-mybot = misterBot(config["botToken"], log)
+mybot = misterBot(config, log)
 
-# Webhook listener
-app = Flask(__name__)
 
-## Test route
-@app.route("/")
-def hello():
-	return "Pay no attention to that man behind the curtain!"
+if (config["mode"] == "webhook"):
+	# Webhook listener
+	app = Flask(__name__)
 
-## Telegram webhook endpoint
-@app.route("/webhook", methods=["POST"])
-def tg_webhook_handler():
-	update = Update.de_json(request.get_json(), mybot.bot)
-	mybot.updateQueue.put(update)
-	return "done"
+	## Test route
+	@app.route("/")
+	def hello():
+		return "Pay no attention to that man behind the curtain!"
 
-## Twitch webhook endpoint
-@app.route("/webhook", methods=["POST"])
-def twitch_webhook_handler():
-	return "done"
+	## Telegram webhook endpoint
+	@app.route("/webhook", methods=["POST"])
+	def tg_webhook_handler():
+		update = Update.de_json(request.get_json(), mybot.bot)
+		mybot.updateQueue.put(update)
+		return "done"
 
-## Start Flask
-app.run(host="0.0.0.0",
-		port=3000,
-		debug=True, 
-		use_reloader=False,
-		threaded=True)
+	## Twitch webhook endpoint
+	@app.route("/webhook", methods=["POST"])
+	def twitch_webhook_handler():
+		return "done"
+
+	## Start Flask
+	app.run(host="0.0.0.0",
+			port=3000,
+			debug=True, 
+			use_reloader=False,
+			threaded=True)
