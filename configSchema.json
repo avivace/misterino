@@ -12,9 +12,17 @@
 		"TwitchAppClientSecret" : {
 			"type": "string",
 			"minLength": 1
+		},
+		"mode" : {
+			"type": "string",
+			"enum" : [
+				"polling",
+				"webhook"
+			]
 		}
 	},
 	"required": ["botToken", 
 				  "TwitchAppClientID", 
-	 			  "TwitchAppClientSecret"]
+	 			  "TwitchAppClientSecret",
+	 			  "mode"]
 }
