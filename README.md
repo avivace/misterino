@@ -29,7 +29,7 @@ We don't use the python-telegram-bot integrated webserver, but we listen for web
 
 During development, we use the polling mode to get the payload from messages sent to the bot, then pipe them to `webhookTest.sh` to simulate the Telegram server sending webhook to our listener.
 
-FYI the twitch events are received anyway listening for webhooks, the `mode` settings changes only the telegram bot operating mode. You don't need all the things mentioned because Twitch doesn't requires an https enabled endpoint, but you should be able to set your own development instance as _callback_ for the webhook subscriptions.
+FYI the twitch events are received anyway listening for webhooks, the `mode` settings changes only the telegram bot operating mode. You don't need all the mentioned things because Twitch doesn't require an https enabled endpoint: you should be able to set your own development instance as _callback_ for the webhook subscriptions.
 
 ### Get started
 
