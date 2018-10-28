@@ -36,8 +36,8 @@ During development, we use the polling mode to get the payload from messages sen
 apt install python3 python3-pip
 
 # Get things ready
-git clone git@github.com:avivace/mister-notifier.git
-cd mister-notifier
+git clone git@github.com:avivace/misterino.git
+cd misterino
 python3 -m venv .
 source bin/activate
 
