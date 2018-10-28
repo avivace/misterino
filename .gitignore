@@ -12,3 +12,5 @@ lib/
 share/
 pyvenv.cfg
 lib64
+
+db.sqlite
