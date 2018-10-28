@@ -1,4 +1,4 @@
-# Mister Notifier
+# <img src="logo.png" alt="misterino" width="250px"/>
 
 > Created by [Denni Bevilacqua](https://github.com/dennib) and [Antonio Vivace](https://github.com/avivace).
 
