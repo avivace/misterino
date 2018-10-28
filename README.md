@@ -51,7 +51,7 @@ Create a `config.json` with the mentioned values:
 
 ```json
 {
-    "mode": "polling" // can be "polling" or "webhook"
+    "mode": "polling", // can be "polling" or "webhook"
     "botToken": "TELGRAM_BOT_TOKEN",
     "TwitchAppClientID": "TWITCH_APP_CLIENT_ID",
     "TwitchAppClientSecret": "TWITCH_APP_CLIENT_SECRET"
