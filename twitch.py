@@ -50,7 +50,7 @@ class twitch():
 		# TODO: Catch status != 200
 		# Return the the first user requested
 		return response["data"][0]
-	
+
 	"""
 	Get User ID
 	"""
@@ -58,6 +58,55 @@ class twitch():
 		user = self.getUser(loginName)
 		return user["id"]
 
+	"""
+	Get User follows
+	"""
+	def getUserFollows(self, userID):
+		payload = {
+			'from_id' : userID
+		}
+
+		r = requests.get(self.twitchNewAPIEndpoint + '/users/follows',
+						 headers=self.authHeaders,
+						 params=payload)
+
+		response = r.json()
+
+		totalSubs = response["total"]
+
+		subscriptionsIDs = []
+		for subscribedUser in response["data"]:
+			subscriptionsIDs.append(subscribedUser["to_id"])
+
+		### Get more details on the list of followed users
+
+		# We can't create dictionaries with duplicate key names, and the /users 
+		# endpoint wants ?login=user1&?login=user2&... for lists. 
+		# So, enjoy this abomination or waste hundreds of API calls and get ratelimited
+
+		def listToQueryParams(array, param):
+			queryString = ''
+
+			for element in array:
+				if element == array[0]:
+					queryString += '?'
+				else:
+					queryString += '&'
+				queryString += param + '=' + element
+
+			return queryString
+
+		queryString = listToQueryParams(subscriptionsIDs, 'id')
+
+		print(queryString)
+
+		# TODO: this endpoint accepts max 100 IDs or Logins, split and do more requests
+		r = requests.get(self.twitchNewAPIEndpoint + '/users' + queryString,
+						 headers=self.authHeaders)
+
+		response = r.json()
+
+		return response["data"]
 
 
 
@@ -65,4 +114,5 @@ class twitch():
 
 config = loadConfig()
 twitch = twitch(config)
-print(twitch.getUserID("darkpuma"))
+userID = twitch.getUserID("darkpuma")
+print(twitch.getUserFollows(userID))
