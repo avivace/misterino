@@ -13,6 +13,10 @@
 			"type": "string",
 			"minLength": 1
 		},
+		"TwitchCallback" : {
+			"type" : "string",
+			"minLength": 1
+		},
 		"mode" : {
 			"type": "string",
 			"enum" : [
@@ -24,5 +28,6 @@
 	"required": ["botToken", 
 				  "TwitchAppClientID", 
 	 			  "TwitchAppClientSecret",
-	 			  "mode"]
+	 			  "mode",
+	 			  "TwitchCallback"]
 }

@@ -5,10 +5,11 @@ import json
 
 ## Default Parameters
 defaultConfig = {
-	    'botToken': '',
-	    'TwitchAppClientID': '',
-	    'TwitchAppClientSecret': '',
-	    'mode': 'polling'
+		'botToken': '',
+		'TwitchAppClientID': '',
+		'TwitchAppClientSecret': '',
+		'mode': 'polling',
+		'TwitchCallback': ''
 	}
 defaultConfigFile = "config.json"
 configSchema = "configSchema.json"
