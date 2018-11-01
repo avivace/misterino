@@ -42,9 +42,14 @@ class twitch():
 	def getUser(self, loginName):
 
 		if type(loginName) is str:
-			payload = {
-				'login' : loginName
-			}
+			if not loginName.isdigit():
+				payload = {
+					'login' : loginName
+				}
+			else:
+				payload = {
+					'id' : loginName
+				}			
 
 			r = requests.get(self.twitchNewAPIEndpoint + '/users',
 							 headers=self.authHeaders,
@@ -56,6 +61,8 @@ class twitch():
 			return response["data"][0]
 
 		elif type(loginName) is list:
+
+
 			# We can't create dictionaries with duplicate key names, and the /users 
 			# endpoint wants ?login=user1&?login=user2&..9. for lists. 
 			# So, enjoy this abomination or waste hundreds of API calls and get ratelimited
@@ -70,7 +77,12 @@ class twitch():
 					queryString += param + '=' + element
 				return queryString
 
-			queryString = listToQueryParams(loginName, 'login')
+			if loginName[0].isdigit():
+				queryString = listToQueryParams(loginName, 'id')
+			else:
+				queryString = listToQueryParams(loginName, 'login')
+
+			
 			# TODO: move this logic to getUserID
 			# TODO: this endpoint accepts max 100 IDs or Logins, split and do more requests
 			r = requests.get(self.twitchNewAPIEndpoint + '/users' + queryString,
@@ -91,6 +103,9 @@ class twitch():
 	Get User follows
 	"""
 	def getUserFollows(self, userID):
+		if not userID.isdigit():
+			userID = self.getUserID(userID)
+
 		payload = {
 			'from_id' : userID
 		}
@@ -109,7 +124,9 @@ class twitch():
 
 		### Get more details on the list of followed users
 		
-		return subscriptionsIDs
+		
+		return self.getUser(subscriptionsIDs)
+		# return subscriptionsIDs
 
 
 
