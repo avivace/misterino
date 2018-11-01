@@ -1,4 +1,5 @@
 import requests
+import secrets
 import json
 
 """
@@ -8,6 +9,7 @@ class twitch():
 	def __init__(self, config):
 		self.twitchOAuthEndpoint = 'https://id.twitch.tv/oauth2/token'
 		self.twitchNewAPIEndpoint = 'https://api.twitch.tv/helix'
+		self.twitchWHEndpoint = 'https://api.twitch.tv/helix/webhooks/hub'
 		self.config = config
 		self.updateToken()
 
@@ -130,5 +132,22 @@ class twitch():
 
 
 
-	def subscribe(self, user):
+	def subscribe(self, mode, topic):
+		# mode: subscribe or unsubscribe
+		secret = secrets.token_urlsafe(16)
+
+		# PHASE 1: Sub/Unsub request
+		payload = {
+			'hub' : { 'callback' : self.config["TwitchCallback"],
+					  'mode' : mode,
+					  'topic' : '',
+					  'lease_seconds': 0,
+					  'secret' : secret}
+		}
+		
+		r = requests.post(self.twitchWHEndpoint,
+						  headers=self.authHeaders,
+						  params=payload)
+
+		# PHASE 2: Confirmation
 		r = requests.post()
