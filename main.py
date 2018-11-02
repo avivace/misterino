@@ -49,6 +49,7 @@ def twitch_webhook_handler():
 	return "done", 200
 
 # Confirm Event sub/unsub
+# Sets up Twitch webhooks (Phase 2)
 @app.route("/tw-webhook", methods=["GET"])
 def confirm_wh():
 	challenge = request.args.get('hub.challenge')

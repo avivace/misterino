@@ -9,7 +9,6 @@ class twitch():
 	def __init__(self, config):
 		self.twitchOAuthEndpoint = 'https://id.twitch.tv/oauth2/token'
 		self.twitchNewAPIEndpoint = 'https://api.twitch.tv/helix'
-		self.twitchWHEndpoint = 'https://api.twitch.tv/helix/webhooks/hub'
 		self.config = config
 		self.updateToken()
 
@@ -130,8 +129,10 @@ class twitch():
 		return self.getUser(subscriptionsIDs)
 		# return subscriptionsIDs
 
-
-
+	"""
+	Sets up Twitch webhooks (Phase 1)
+	Subscribe/Unsubscribe to events
+	"""
 	def updateWh(self, mode, userID):
 		if not userID.isdigit():
 			userID = self.getUserID(userID)
@@ -145,8 +146,15 @@ class twitch():
 			'hub.lease_seconds': 60,
 			'hub.secret' : secret
 		}
-		r = requests.post(self.twitchWHEndpoint,
+		r = requests.post(self.twitchNewAPIEndpoint + 'webhooks/hub',
 						  headers=self.authHeaders,
 						  params=payload)
-
+		
+		## At this point, Twitch validates or not the request
+		## In the first case, it sends a challenge token to the specified callback
 		return r
+
+	def listWebhooks(self):
+		r = requests.get(self.twitchNewAPIEndpoint + 'webhooks/subscriptions',
+						 headers=self.authHeaders)
+		return r.json()
