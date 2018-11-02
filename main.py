@@ -25,7 +25,7 @@ dbConn = sqlite3.connect('./db.sqlite', check_same_thread=False)
 #  sqlite should simply put in wait in case of concurrent writes.
 
 # Instance Telegram Bot
-mybot = misterBot(config, log, dbConn)
+#mybot = misterBot(config, log, dbConn)
 
 # Webhook listener, Flask
 app = Flask(__name__)
@@ -46,7 +46,14 @@ if (config["mode"] == "webhook"):
 ## Twitch webhook endpoint
 @app.route("/tw-webhook", methods=["POST"])
 def twitch_webhook_handler():
-	return "done"
+	return "done", 200
+
+# Confirm Event sub/unsub
+@app.route("/tw-webhook", methods=["GET"])
+def confirm_wh():
+	challenge = request.args.get('hub.challenge')
+	print("Confirming ", challenge)
+	return challenge, 200
 
 ## Start Flask
 app.run(host="0.0.0.0",

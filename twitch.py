@@ -132,22 +132,21 @@ class twitch():
 
 
 
-	def subscribe(self, mode, topic):
-		# mode: subscribe or unsubscribe
-		secret = secrets.token_urlsafe(16)
+	def updateWh(self, mode, userID):
+		if not userID.isdigit():
+			userID = self.getUserID(userID)
 
-		# PHASE 1: Sub/Unsub request
+		secret = secrets.token_urlsafe(16)
+		topic = 'https://api.twitch.tv/helix/streams?user_id='+userID
 		payload = {
-			'hub' : { 'callback' : self.config["TwitchCallback"],
-					  'mode' : mode,
-					  'topic' : '',
-					  'lease_seconds': 0,
-					  'secret' : secret}
+			'hub.callback' : self.config["TwitchCallback"] + ':3000/tw-webhook',
+			'hub.mode' : mode,
+			'hub.topic' : topic,
+			'hub.lease_seconds': 60,
+			'hub.secret' : secret
 		}
-		
 		r = requests.post(self.twitchWHEndpoint,
 						  headers=self.authHeaders,
 						  params=payload)
 
-		# PHASE 2: Confirmation
-		r = requests.post()
+		return r
