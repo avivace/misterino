@@ -82,19 +82,21 @@ class misterBot():
                 parse_mode=ParseMode.MARKDOWN)
         else:
             streamer = args[0]
-            # Check if requested subscription already exits in db
-            queryParams = (update.message.chat_id, streamer)
-            sql = 'SELECT COUNT(*) FROM SUBSCRIPTIONS WHERE ChatID=? AND Sub=?'
-            self.c.execute(sql, queryParams)
+            # Check if ANYONE already subscribed to that streamer
+
+            # ask denni 'bout this
+            sql = 'SELECT COUNT(*) FROM SUBSCRIPTIONS WHERE Sub="'+streamer+'"'
+            self.c.execute(sql)
             found = self.c.fetchone()[0]
-            # If it doesn't exit yet...
+
             if not found:
+                logging.warning("Adding a webhook and user subscription")
                 userID = self.twitch.getUserID(streamer)
                 self.twitch.updateWh('subscribe', userID)
                 logging.warning("Sending a webhook subscription")
                 # ... Add it to db and...
                 sql = '''INSERT INTO SUBSCRIPTIONS (ChatID,Sub,Active)
-						 VALUES (?,?,?)'''
+                         VALUES (?,?,?)'''
                 queryParams = (update.message.chat_id, streamer, 1)
                 self.c.execute(sql, queryParams)
                 self.dbConn.commit()
@@ -103,13 +105,41 @@ class misterBot():
                 bot.send_message(chat_id=update.message.chat_id,
                      text='Yeeey! you\'ve successfully subscribed to *{}*!'\
                      .format(streamer),
-                     parse_mode=ParseMode.MARKDOWN)
+                     parse_mode=ParseMode.MARKDOWN)          
             else:
-                # Otherwise warn the user that subscription is already existent
-                bot.send_message(chat_id=update.message.chat_id,
-                     text='Don\'t worry! You are already subscribed to '\
-                     + '*{}*'.format(streamer),
-                     parse_mode=ParseMode.MARKDOWN)
+                
+                # Check if that particular user has that subscription
+                queryParams = (update.message.chat_id, streamer)
+                sql = 'SELECT COUNT(*) FROM SUBSCRIPTIONS WHERE ChatID=? AND Sub=?'
+                self.c.execute(sql, queryParams)
+                found = self.c.fetchone()[0]
+
+                # If it doesn't exist yet...
+                if not found:
+                    logging.warning("Adding a user subscription")
+                    userID = self.twitch.getUserID(streamer)
+                    # ... Add it to db and...
+                    sql = '''INSERT INTO SUBSCRIPTIONS (ChatID,Sub,Active)
+                             VALUES (?,?,?)'''
+                    queryParams = (update.message.chat_id, streamer, 1)
+                    self.c.execute(sql, queryParams)
+                    self.dbConn.commit()
+
+                    #... Notify the user
+                    bot.send_message(chat_id=update.message.chat_id,
+                         text='Yeeey! you\'ve successfully subscribed to *{}*!'\
+                         .format(streamer),
+                         parse_mode=ParseMode.MARKDOWN)
+
+                else:
+                    logging.warning("User were already subbed")
+                    # Otherwise warn the user that subscription is already existent
+                    bot.send_message(chat_id=update.message.chat_id,
+                         text='Don\'t worry! You are already subscribed to '\
+                         + '*{}*'.format(streamer),
+                         parse_mode=ParseMode.MARKDOWN)
+
+                
 
     ## Unsub method
     #  Delete a subscription for current user given a twitch username
@@ -173,8 +203,8 @@ class misterBot():
             # Build up the message for the user with retrieved subscriptions
             message = "Here's a list of all of your subscriptions:\n"
             for sub in subs:
-                streamer = sub[2]
-                status = "*Active*" if sub[3] else "_Disabled_"
+                streamer = sub[1]
+                status = "*Active*" if sub[2] else "_Disabled_"
                 message += '\n' + streamer + ': ' + status + '\n---'
         else:
             # ...otherwise warn the user he has no subscriptions yet
