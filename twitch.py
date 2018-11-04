@@ -142,7 +142,7 @@ class twitch():
             'hub.callback': self.config["TwitchCallback"] + ':3000/tw-webhook',
             'hub.mode': mode,
             'hub.topic': topic,
-            'hub.lease_seconds': 60,
+            'hub.lease_seconds': 864000,
             'hub.secret': secret
         }
         r = requests.post(
