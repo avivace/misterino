@@ -83,10 +83,9 @@ class misterBot():
         else:
             streamer = args[0]
             # Check if ANYONE already subscribed to that streamer
-
-            # ask denni 'bout this
-            sql = 'SELECT COUNT(*) FROM SUBSCRIPTIONS WHERE Sub="'+streamer+'"'
-            self.c.execute(sql)
+            queryParams = (streamer, )
+            sql = 'SELECT COUNT(*) FROM SUBSCRIPTIONS WHERE Sub=?'
+            self.c.execute(sql, queryParams)
             found = self.c.fetchone()[0]
 
             if not found:
