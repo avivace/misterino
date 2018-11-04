@@ -2,7 +2,9 @@ from telegram.ext import Dispatcher, CommandHandler, Updater
 from telegram import Bot, Update, ParseMode
 from queue import Queue
 from threading import Thread
+from twitch import twitch
 import sqlite3
+import logging
 
 
 class misterBot():
@@ -11,6 +13,7 @@ class misterBot():
 
         self.dbConn = dbConn
         self.c = self.dbConn.cursor()
+        self.twitch = twitch(config)
 
         if config["mode"] == "polling":
             self.pollingInit(botToken, log)
@@ -58,9 +61,6 @@ class misterBot():
     def life(self, bot, update):
         sql = '''INSERT INTO SUBSCRIPTIONS (ChatID,Sub,Active)
 						 VALUES (?,?,?)'''
-        queryParams = ('a', 'b', 'c')
-        self.c.execute(sql, queryParams)
-        self.dbConn.commit()
         bot.send_message(chat_id=update.message.chat_id, text='42')
 
     ## Sub method
@@ -89,12 +89,16 @@ class misterBot():
             found = self.c.fetchone()[0]
             # If it doesn't exit yet...
             if not found:
+                userID = self.twitch.getUserID(streamer)
+                self.twitch.updateWh('subscribe', userID)
+                logging.warning("Sending a webhook subscription")
                 # ... Add it to db and...
                 sql = '''INSERT INTO SUBSCRIPTIONS (ChatID,Sub,Active)
 						 VALUES (?,?,?)'''
                 queryParams = (update.message.chat_id, streamer, 1)
                 self.c.execute(sql, queryParams)
                 self.dbConn.commit()
+
                 #... Notify the user
                 bot.send_message(chat_id=update.message.chat_id,
                      text='Yeeey! you\'ve successfully subscribed to *{}*!'\
