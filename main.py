@@ -1,7 +1,7 @@
 from telegram.ext import CommandHandler
 from telegram.ext import Updater
 from flask import Flask, request
-from telegram import Update
+from telegram import Update, ParseMode
 import logging
 import json
 import sqlite3
@@ -50,7 +50,18 @@ if (config["mode"] == "webhook"):
 ## Twitch webhook endpoint
 @app.route("/tw-webhook", methods=["POST"])
 def twitch_webhook_handler():
-    print(request.data)
+    data = json.loads(request.data)
+    username = data["data"][0]["user_name"]
+    title = data["data"][0]["title"]
+    url = "https://twitch.tv/"+username
+    c = dbConn.cursor()
+    queryParams = (username, )
+    sql = 'SELECT * FROM SUBSCRIPTIONS WHERE Sub=?'
+    result = c.execute(sql, queryParams)
+    for row in result:
+        subscriber = row[0]
+        text='*{}* è live su Twitch! _{}_ \n{}'.format(username, title, url)
+        mybot.bot.send_message(chat_id=subscriber, text=text, parse_mode=ParseMode.MARKDOWN)
     return "done", 200
 
 
