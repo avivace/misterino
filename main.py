@@ -5,6 +5,7 @@ from telegram import Update, ParseMode
 import logging
 import json
 import sqlite3
+import os
 
 # Local imports
 from config import loadConfig
@@ -19,8 +20,16 @@ logging.basicConfig(
 # Load configuration
 config = loadConfig()
 
-# Initialise Sqlite database
-dbConn = sqlite3.connect('./db.sqlite', check_same_thread=False)
+if not os.path.isfile('db.sqlite'):
+    logging.WARNING("Initialising database with the default tables")
+    dbConn = sqlite3.connect('./db.sqlite', check_same_thread=False)
+    c = dbConn.cursor()
+    c.execute("CREATE TABLE `SUBSCRIPTIONS` ( `ChatID` TEXT, `Sub` TEXT, `Active` TEXT )")
+    c.execute("CREATE TABLE `WEBHOOKS` ( `Topic` TEXT, `Expires` TEXT )")
+else:
+    dbConn = sqlite3.connect('./db.sqlite', check_same_thread=False)
+
+
 # Beware that we will commit changes from two threads:
 #  Flask (in the Twitch webhook) and the Dispatcher (in command Handlers)
 #  sqlite should simply put in wait in case of concurrent writes.
