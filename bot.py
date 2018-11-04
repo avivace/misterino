@@ -22,6 +22,7 @@ class misterBot():
 
     def pollingInit(self, botToken, log):
         self.updater = Updater(token=botToken)
+        self.bot = self.updater.bot
         self.dispatcher = self.updater.dispatcher
         self.registerHandlers()
         self.updater.start_polling()
