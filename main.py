@@ -14,7 +14,7 @@ from bot import misterBot
 log = logging.getLogger('logger')
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.DEBUG)
+    level=logging.WARNING)
 
 # Load configuration
 config = loadConfig()
@@ -26,7 +26,7 @@ dbConn = sqlite3.connect('./db.sqlite', check_same_thread=False)
 #  sqlite should simply put in wait in case of concurrent writes.
 
 # Instance Telegram Bot
-#mybot = misterBot(config, log, dbConn)
+mybot = misterBot(config, log, dbConn)
 
 # Webhook listener, Flask
 app = Flask(__name__)
@@ -50,6 +50,7 @@ if (config["mode"] == "webhook"):
 ## Twitch webhook endpoint
 @app.route("/tw-webhook", methods=["POST"])
 def twitch_webhook_handler():
+    print(request.data)
     return "done", 200
 
 
