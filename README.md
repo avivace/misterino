@@ -18,9 +18,9 @@ We make use of
 
 #### Webhook mode
 
-The bot was developed to work in `webhook` (this is also why it _may_ seem over-engineered). Please understand that the webhook mode requires additional work and maintenance. You need:
+The bot was developed to operate in `webhook` mode (this is also why it _may_ seem over-engineered). Please understand that this requires additional work and maintenance. You need:
 
-- A public IP address or domain;
+- A public IP address and/or domain;
 - A SSL certificate;
 - A webhook listener;
 - A reverse proxy exposing the webhook listener, handling TLS1.0+ HTTPS-traffic. 
@@ -29,7 +29,7 @@ We don't use the python-telegram-bot integrated webserver, but we listen for web
 
 During development, we use the polling mode to get the payload from messages sent to the bot, then pipe them to `webhookTest.sh` to simulate the Telegram server sending webhook to our listener.
 
-FYI the twitch events are received anyway listening for webhooks, the `mode` settings changes only the telegram bot operating mode. You don't need all the mentioned things because Twitch doesn't require an https enabled endpoint: you should be able to set your own development instance as _callback_ for the webhook subscriptions.
+FYI the Twitch events are received anyway listening for webhooks, the `mode` setting changes only the telegram bot operating mode. You don't need all the mentioned things for Twitch because it doesn't require an https enabled endpoint: as long as you have DMZ/open ports you are able to set your own IP as _callback_ for the webhook subscriptions.
 
 ### Get started
 
