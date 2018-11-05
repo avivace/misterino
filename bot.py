@@ -48,6 +48,8 @@ class misterBot():
     # Commands Handlers
     def registerHandlers(self):
         self.dispatcher.add_handler(CommandHandler('life', self.life))
+        self.dispatcher.add_handler(CommandHandler('help', self.help))
+        self.dispatcher.add_handler(CommandHandler('info', self.info))
         self.dispatcher.add_handler(CommandHandler('show', self.show))
         self.dispatcher.add_handler(
             CommandHandler('sub', self.sub, pass_args=True))
@@ -58,10 +60,28 @@ class misterBot():
         self.dispatcher.add_handler(
             CommandHandler('disable', self.disable, pass_args=True))
 
+    ### Help
+    def help(self, bot, update):
+        text = """ `/sub channelName` subscribes the current chat to the specified Twitch channel. The chat will be notified when that channel goes live. \n
+`/unsub channelName` removes the subscribtion to the specified Twitch channel from the current chat. \n 
+`/show channelName` lists the subscriptions for the current chat. \n
+`/info` gives you more information on this bot. \n
+You can have different subscriptions for each chat the bot is in. E.g. you can subscribe to channel A and B privately, while being subscribed to C and D in a group you add the bot."""
+        bot.send_message(
+            chat_id=update.message.chat_id,
+            text=text,
+            parse_mode=ParseMode.MARKDOWN)
+
+    ### Info
+    def info(self, bot, update):
+        text = """ This bot is was developed by @avivace and @dennib and it's open source, licensed under the GPL terms. You can find the source (or even contribute yourself!) at https://github.com/avivace/misterino """
+        bot.send_message(
+            chat_id=update.message.chat_id,
+            text=text,
+            parse_mode=ParseMode.MARKDOWN)
+
     ### Commands methods
     def life(self, bot, update):
-        sql = '''INSERT INTO SUBSCRIPTIONS (ChatID,Sub,Active)
-						 VALUES (?,?,?)'''
         bot.send_message(chat_id=update.message.chat_id, text='42')
 
     ## Sub method
@@ -93,6 +113,9 @@ class misterBot():
                 logging.warning("Adding a webhook and user subscription")
                 userID = self.twitch.getUserID(streamer)
                 self.twitch.updateWh('subscribe', userID)
+                # Add to webhook list
+                sql = ''' INSERT INTO WEBHOOKS (Sub) VALUES (?) '''
+
                 logging.warning("Sending a webhook subscription")
                 # ... Add it to db and...
                 sql = '''INSERT INTO SUBSCRIPTIONS (ChatID,Sub,Active)
@@ -105,9 +128,9 @@ class misterBot():
                 bot.send_message(chat_id=update.message.chat_id,
                      text='Yeeey! you\'ve successfully subscribed to *{}*!'\
                      .format(streamer),
-                     parse_mode=ParseMode.MARKDOWN)          
+                     parse_mode=ParseMode.MARKDOWN)
             else:
-                
+
                 # Check if that particular user has that subscription
                 queryParams = (update.message.chat_id, streamer)
                 sql = 'SELECT COUNT(*) FROM SUBSCRIPTIONS WHERE ChatID=? AND Sub=?'
@@ -138,8 +161,6 @@ class misterBot():
                          text='Don\'t worry! You are already subscribed to '\
                          + '*{}*'.format(streamer),
                          parse_mode=ParseMode.MARKDOWN)
-
-                
 
     ## Unsub method
     #  Delete a subscription for current user given a twitch username
@@ -339,3 +360,9 @@ class misterBot():
                     chat_id=update.message.chat_id,
                     text=message,
                     parse_mode=ParseMode.MARKDOWN)
+
+    def updateWebhooksTable():
+        webhooks = twitch.listWebhooks()
+        sql = '''INSERT INTO WEBHOOKS (Topic, Expires) VALUES (?, ?)'''
+        queryParams = (st)
+        self.c.execute(sql, queryParams)
