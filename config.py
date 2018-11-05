@@ -9,7 +9,7 @@ defaultConfig = {
     'TwitchAppClientID': '',
     'TwitchAppClientSecret': '',
     'mode': 'polling',
-    'TwitchCallback': ''
+    'callback': ''
 }
 defaultConfigFile = "config.json"
 configSchema = "configSchema.json"
