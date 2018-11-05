@@ -8,29 +8,36 @@ import logging
 
 
 class misterBot():
-    def __init__(self, config, log, dbConn, webhookURL=None):
+    def __init__(self, config, log, dbConn, twitch):
         botToken = config["botToken"]
-
+        self.config = config
         self.dbConn = dbConn
         self.c = self.dbConn.cursor()
-        self.twitch = twitch(config)
+        self.twitch = twitch
+        self.log = log
 
         if config["mode"] == "polling":
-            self.pollingInit(botToken, log)
+            self.pollingInit(botToken)
         elif config["mode"] == "webhook":
-            self.webhookInit(botToken, log)
+            self.webhookInit(botToken)
 
-    def pollingInit(self, botToken, log):
+    """
+    Sets up the bot using the polling mode
+    """
+    def pollingInit(self, botToken):
         self.updater = Updater(token=botToken)
         self.bot = self.updater.bot
         self.dispatcher = self.updater.dispatcher
         self.registerHandlers()
         self.updater.start_polling()
 
-    def webhookInit(self, botToken, log, webhookURL=None):
-
+    """
+    Sets up the bot in webhook mode, setting the given callback URL
+    """
+    def webhookInit(self, botToken):
+        webhookURL = self.config["callback"]
         self.bot = Bot(botToken)
-        self.log = log
+        self.bot.set_webhook(webhookURL)
         self.updateQueue = Queue()
         self.dispatcher = Dispatcher(self.bot, self.updateQueue)
         self.dispatcherThread = Thread(
@@ -39,12 +46,7 @@ class misterBot():
         self.registerHandlers()
         log.debug('Handlers registered')
         self.dispatcherThread.start()
-        log.info('Bot started')
-
-    def setWebhook(self):
-        self.bot.set_webhook(self.webhookURL)
-        log.info('Telegram webhook set')
-
+        
     # Commands Handlers
     def registerHandlers(self):
         self.dispatcher.add_handler(CommandHandler('life', self.life))
@@ -59,8 +61,9 @@ class misterBot():
             CommandHandler('enable', self.enable, pass_args=True))
         self.dispatcher.add_handler(
             CommandHandler('disable', self.disable, pass_args=True))
-
-    ### Help
+    # Commands methods
+    
+    ## Help
     def help(self, bot, update):
         text = """ `/sub channelName` subscribes the current chat to the specified Twitch channel. The chat will be notified when that channel goes live. \n
 `/unsub channelName` removes the subscribtion to the specified Twitch channel from the current chat. \n 
@@ -72,7 +75,7 @@ You can have different subscriptions for each chat the bot is in. E.g. you can s
             text=text,
             parse_mode=ParseMode.MARKDOWN)
 
-    ### Info
+    ## Info
     def info(self, bot, update):
         text = """ This bot is was developed by @avivace and @dennib and it's open source, licensed under the GPL terms. You can find the source (or even contribute yourself!) at https://github.com/avivace/misterino """
         bot.send_message(
@@ -80,7 +83,7 @@ You can have different subscriptions for each chat the bot is in. E.g. you can s
             text=text,
             parse_mode=ParseMode.MARKDOWN)
 
-    ### Commands methods
+   
     def life(self, bot, update):
         bot.send_message(chat_id=update.message.chat_id, text='42')
 
