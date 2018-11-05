@@ -2,6 +2,7 @@ from telegram.ext import CommandHandler
 from telegram.ext import Updater
 from flask import Flask, request
 from telegram import Update, ParseMode
+from twitch import twitch
 import logging
 import json
 import sqlite3
@@ -34,8 +35,10 @@ else:
 #  Flask (in the Twitch webhook) and the Dispatcher (in command Handlers)
 #  sqlite should simply put in wait in case of concurrent writes.
 
+twitch = twitch(config)
+
 # Instance Telegram Bot
-mybot = misterBot(config, log, dbConn)
+mybot = misterBot(config, log, dbConn, twitch)
 
 # Webhook listener, Flask
 app = Flask(__name__)
@@ -81,6 +84,15 @@ def confirm_wh():
     challenge = request.args.get('hub.challenge')
     print("Confirming ", challenge)
     return challenge, 200
+
+"""
+Syncs the actual (active) webhook subscriptions to our table
+"""
+def updateWebhooksTable():
+    webhooks = twitch.listWebhooks()
+    for webhook in webhooks['data']:
+        print(webhook)
+    return True
 
 
 ## Start Flask
