@@ -139,7 +139,7 @@ class twitch():
         secret = secrets.token_urlsafe(16)
         topic = 'https://api.twitch.tv/helix/streams?user_id=' + userID
         payload = {
-            'hub.callback': self.config["TwitchCallback"] + ':3000/tw-webhook',
+            'hub.callback': self.config["callback"] + ':3000/tw-webhook',
             'hub.mode': mode,
             'hub.topic': topic,
             'hub.lease_seconds': 864000,
